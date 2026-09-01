@@ -32,7 +32,7 @@ async def start_command(message: Message,
 @user_router.callback_query(F.data == 'try_another')
 async def try_another(callback: CallbackQuery, dialog_manager: DialogManager):
     await callback.answer()
-    await dialog_manager.start(state=states.Select_collection_SG.select_material, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
+    await dialog_manager.start(state=states.Select_collection_SG.select_bricks, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
 
 
 @user_router.callback_query(F.data == 'leave_request')

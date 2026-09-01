@@ -11,7 +11,7 @@ from database import requests
 async def start_hi(dialog_manager: DialogManager,
                     i18n: TranslatorRunner,
                     **kwargs):
-    photo = MediaAttachment(type=ContentType.PHOTO, path='data/images/castelia_start_photo.jpg')
+    photo = MediaAttachment(type=ContentType.PHOTO, path='data/images/brimium_start_photo.jpg')
 
     return {'start_bot': i18n.start.bot(),
             'button_start': i18n.button.start(),
@@ -29,36 +29,12 @@ async def material_selection(dialog_manager: DialogManager,
 
     photo = MediaAttachment(
 		type=ContentType.PHOTO,
-		path=menu_photo or 'data/images/castelia_start_photo.jpg'
+		path=menu_photo or 'data/images/brimium_start_photo.jpg'
 	)
 
     return {'materials': [{'id': m.id, 'name': m.name} for m in materials],
             'photo': photo,
             'collection_select': i18n.collection.select()}
-
-
-async def select_color_gett(dialog_manager: DialogManager,
-                            i18n: TranslatorRunner,
-                            **kwargs):
-
-    material_id = dialog_manager.dialog_data.get('material_id') # type: ignore
-    if material_id is None:
-        return {'choice_color': i18n.choice.color(),
-            'name_color': [],
-            'choice_color_back': i18n.choice.color.back()}
-    material_id = int(material_id)
-
-    async with async_session() as session:
-        name_color = await requests.get_name_by_id_material(session, material_id)
-        color_path = await requests.get_path_color_by_material_id(session, material_id)
-
-    photo = MediaAttachment(type=ContentType.PHOTO,
-                            path=color_path)
-
-    return {'choice_color': i18n.choice.color(),
-            'name_color': name_color,
-            'choice_color_back': i18n.choice.color.back(),
-            'photo': photo}
 
 async def layout_tile_gett(dialog_manager: DialogManager,
                                 i18n: TranslatorRunner,
@@ -69,13 +45,13 @@ async def layout_tile_gett(dialog_manager: DialogManager,
             'photo': photo}
 
 
-async def select_photo_by_color_id(dialog_manager: DialogManager,
+async def select_photo_by_brick_type(dialog_manager: DialogManager,
                                 i18n: TranslatorRunner,
                                 **kwargs):
-    color_id = int(dialog_manager.dialog_data.get('color_id')) # type: ignore
+    material_id = int(dialog_manager.dialog_data.get('material_id')) # type: ignore
 
     async with async_session() as session:
-        path = await requests.get_photo_by_color_id(session, color_id)
+        path = await requests.get_photo_by_material_id(session, material_id)
 
     photo = MediaAttachment(
         type=ContentType.PHOTO,
@@ -83,17 +59,16 @@ async def select_photo_by_color_id(dialog_manager: DialogManager,
     )
 
     return {'photo': photo,
-            'choice_color_itog': i18n.choice.color.itog(),
-            'choice_color_back': i18n.choice.color.back()}
+            'choice_brick_itog': i18n.choice.brick.itog(),
+            'choice_brick_back': i18n.choice.brick.back()}
 
 
-async def size_tile_gett(dialog_manager: DialogManager,
+async def kind_brick_gett(dialog_manager: DialogManager,
                         i18n: TranslatorRunner,
                         **kwargs):
-    return {'choice_size_tile': i18n.choice.size.tile(),
-            'size_big': i18n.size.big(),
-            'size_average': i18n.size.average(),
-            'size_small' : i18n.size.small()}
+    return {'choice_kind_brick': i18n.choice.kind.brick(),
+            'evro_type': i18n.evro.type(),
+            'long_type': i18n.long.type()}
 
 
 async def photo_reception(dialog_manager: DialogManager,

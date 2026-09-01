@@ -102,7 +102,7 @@ async def upload_to_hosting(path: str, session: aiohttp.ClientSession, proxy: st
     raise aiohttp.ClientError(f'все хостинги недоступны: {last_error}')
 
 
-async def visualize(room_path: str, material_path: str, size_tile: str, photo_layout: str, layout_prompt: str):
+async def visualize(room_path: str, material_path: str, photo_layout: str, layout_prompt: str):
     async with aiohttp.ClientSession() as session:
         results = await asyncio.gather(
             upload_to_hosting(room_path, session, _config.upload_proxy),
@@ -118,7 +118,7 @@ async def visualize(room_path: str, material_path: str, size_tile: str, photo_la
 
         body = {
             "model": "nano-banana-2",
-            "prompt": f"The first image is a photo of a room. Replace the wall covering in the first image with exactly the material shown in the second image, using tiles of size {size_tile} mm. Arrange the tiles according to the {layout_prompt} layout shown in the third image. Keep the room's lighting, shadows, perspective and furniture. Make the material look realistic and seamless.",
+            "prompt": f"The first image is a photo of a room. Replace the wall covering with the material texture from the SECOND image only. Use the SECOND image as the only source of color and texture of the bricks. The THIRD image is only a schematic reference for the tile arrangement pattern ({layout_prompt}); ignore any color, texture or bricks visible in the third image — never copy its surface onto the wall. Keep the room's lighting, shadows, perspective and furniture. Make the material look realistic and seamless.",
             "inputs": {"image_input": [url_room, url_material, url_layout]},
             "params": {"aspect_ratio": "1:1"},
             "wait": False

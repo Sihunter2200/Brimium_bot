@@ -42,45 +42,25 @@ select_collection = Dialog(
             Button(Const('←'), id='group_prev', on_click=callbacks.group_prev),
             Button(Const('→'), id='group_next', on_click=callbacks.group_next)
         ),
-        state=states.Select_collection_SG.select_material,
+        state=states.Select_collection_SG.select_bricks,
         getter=getters.material_selection),
     Window(
         DynamicMedia('photo'),
-        Format('{choice_color}'),
-        ScrollingGroup(
-            Select(
-                Format('{item[name]}'),
-                id='choice_color',
-                item_id_getter=lambda item: item['id'],
-                items='name_color',
-                on_click=callbacks.color_selected # type: ignore
-            ),
-            id='select_color',
-            width=2,
-            height=9,
-            hide_on_single_page=True
-        ),
-        Button(Format('{choice_color_back}'), id='back_to_choice_material', on_click=callbacks.back_to_material_color),
-        state=states.Select_collection_SG.select_view_color,
-        getter=getters.select_color_gett),
-    Window(
-        DynamicMedia('photo'),
         Column(
-            Button(Format('{choice_color_itog}'), id='choice_color_itog', on_click=callbacks.color_itog),
-            Button(Format('{choice_color_back}'), id='choice_color_back', on_click=callbacks.back_to_choice_color)
+            Button(Format('{choice_brick_itog}'), id='choice_brick_itog', on_click=callbacks.brick_itog),
+            Button(Format('{choice_brick_back}'), id='choice_brick_back', on_click=callbacks.back_to_choice_bricks)
             ),
-        state=states.Select_collection_SG.select_color_with_photo,
-        getter=getters.select_photo_by_color_id
+        state=states.Select_collection_SG.select_specific_brick_with_photo,
+        getter=getters.select_photo_by_brick_type
     ),
     Window(
-        Format('{choice_size_tile}'),
+        Format('{choice_kind_brick}'),
         Column(
-            Button(Format('{size_big}'), id='size_big', on_click=callbacks.save_size_layout),
-            Button(Format('{size_average}'), id='size_average', on_click=callbacks.save_size_layout),
-            Button(Format('{size_small}'), id='size_small', on_click=callbacks.save_size_layout)
+            Button(Format('{evro_type}'), id='evro_type', on_click=callbacks.save_brick_type),
+            Button(Format('{long_type}'), id='long_type', on_click=callbacks.save_brick_type),
         ),
-        state=states.Select_collection_SG.select_size_tile,
-        getter=getters.size_tile_gett
+        state=states.Select_collection_SG.select_kind_brick,
+        getter=getters.kind_brick_gett
     ),
     Window(
         DynamicMedia('photo'),

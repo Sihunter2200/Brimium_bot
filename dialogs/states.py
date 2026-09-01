@@ -5,10 +5,9 @@ class StartSG(StatesGroup):
     start = State()
 
 class Select_collection_SG(StatesGroup):
-    select_material = State()
-    select_view_color = State()
-    select_color_with_photo = State()
-    select_size_tile = State()
+    select_bricks = State()
+    select_specific_brick_with_photo = State()
+    select_kind_brick = State()
     select_layout_tile = State()
 
 class Photo_visualization(StatesGroup):

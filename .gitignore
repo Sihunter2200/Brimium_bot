@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+.env.server
 
 # Базы данных и файлы данных
 *.db

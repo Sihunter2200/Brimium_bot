@@ -1,113 +1,106 @@
 import asyncio
-import os
-import re
 
-from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from database.db import async_session
-from database.models import Material, MaterialVariant
+from database.models import Material
 
 IMAGES_DIR = 'data/images'
 
-# служебные фото, которые не являются вариантами материалов
-SERVICE_PHOTOS = {'castelia_start_photo.jpg', 'menu_group_1.jpeg', 'menu_group_2.jpeg', 'menu_group_3.jpeg'}
-
 # group -> путь к общему фото группы
 GROUP_PHOTOS = {
-    1: 'data/images/menu_group_1.jpeg',
-    2: 'data/images/menu_group_2.jpeg',
-    3: 'data/images/menu_group_3.jpeg',
+    1: 'data/images/menu_group_1.jpg',
+    2: 'data/images/menu_group_2.jpg',
+    3: 'data/images/menu_group_3.jpg',
+    4: 'data/images/menu_group_4.jpg',
+    5: 'data/images/menu_group_5.jpg',
+    6: 'data/images/menu_group_6.jpg',
+    7: 'data/images/menu_group_7.jpg',
+    8: 'data/images/menu_group_8.jpg',
+    9: 'data/images/menu_group_9.jpg',
 }
 
-# (имя, группа) — порядок задаёт только порядок показа в меню,
-# номер материала в имени файла берётся из MATERIAL_FILE_NUMS
+# (имя, группа, имя файла) — порядок задаёт порядок показа в меню.
+# имя файла в data/images: {имя}_{номер}.jpg
 MATERIALS = [
-    ('Travertine Italian', 1),
-    ('Travertine PRO', 1),
-    ('Polished stone PRO', 1),
-    ('Marble', 1),
-    ('Polished Concrete', 1),
-    ('Slate', 1),
-    ('Round line stone', 1),
-    ('Roman pillar', 2),
-    ('Ripple Board', 2),
-    ('Ripple board под покраску «выпуклый»', 2),
-    ('Rough surface', 2),
-    ('Polywood', 2),
-    ('Terrazo', 2),
-    ('Line Stone', 2),
-    ('New Rock', 3),
-    ('Alluminium board', 3),
-    ('Ancient wood', 3),
-    ('Crood wood ripple board', 3),
-    ('Rockface Stone', 3),
-    ('Rust board', 3),
-    ('Sandstone Nile', 3),
+    ('T-32', 1, 'T-32_1.jpg'),
+    ('T-53', 1, 'T-53_2.jpg'),
+    ('T-62', 1, 'T-62_3.jpg'),
+    ('T-75', 1, 'T-75_4.jpg'),
+    ('T-19', 1, 'T-19_5.jpg'),
+    ('T-55', 1, 'T-55_6.jpg'),
+    ('T-04', 1, 'T-04_7.jpg'),
+
+    ('T-26', 2, 'T-26_8.jpg'),
+    ('T-37', 2, 'T-37_9.jpg'),
+    ('T-96.22', 2, 'T-96.22_10.jpg'),
+    ('T-51', 2, 'T-51_11.jpg'),
+    ('T-99', 2, 'T-99_12.jpg'),
+    ('T-79', 2, 'T-79_13.jpg'),
+    ('T-92', 2, 'T-92_14.jpg'),
+
+    ('T-15', 3, 'T-15_15.jpg'),
+    ('T-92.2', 3, 'T-92.2_16.jpg'),
+    ('T-91', 3, 'T-91_17.jpg'),
+    ('T-91.1', 3, 'T-91.1_18.jpg'),
+    ('T-91.2', 3, 'T-91.2_19.jpg'),
+    ('T-07 (1)', 3, 'T-07_20(1).jpg'),
+    ('T-71', 3, 'T-71_21.jpg'),
+
+    ('T-16', 4, 'T-16_22.jpg'),
+    ('T-12', 4, 'T-12_23.jpg'),
+    ('T-59', 4, 'T-59_24.jpg'),
+    ('T-22', 4, 'T-22_25.jpg'),
+    ('T-11', 4, 'T-11_26.jpg'),
+    ('T-54', 4, 'T-54_27.jpg'),
+    ('T-41', 4, 'T-41_28.jpg'),
+
+    ('T-99.2', 5, 'T-99.2_29.jpg'),
+    ('S-17', 5, 'S-17_30.jpg'),
+    ('T-30', 5, 'T-30_31.jpg'),
+    ('T-56 NEW', 5, 'T-56 NEW_32.jpg'),
+    ('T-77', 5, 'T-77_33.jpg'),
+    ('T-81', 5, 'T-81_34.jpg'),
+    ('T-56.1', 5, 'T-56.1_35.jpg'),
+
+    ('T-60', 6, 'T-60_36.jpg'),
+    ('T-90', 6, 'T-90_37.jpg'),
+    ('T-56 OLD', 6, 'T-56 OLD_38.jpg'),
+    ('T-59.2', 6, 'T-59.2_39.jpg'),
+    ('T-90.1', 6, 'T-90.1_40.jpg'),
+    ('K-55', 6, 'K-55_41.jpg'),
+    ('K-92', 6, 'K-92_42.jpg'),
+
+    ('T-15.1', 7, 'T-15.1_43.jpg'),
+    ('T-50', 7, 'T-50_44.jpg'),
+    ('T-11.1', 7, 'T-11.1_45.jpg'),
+    ('T-07 (2)', 7, 'T-07_46(2).jpg'),
+    ('T-20', 7, 'T-20_47.jpg'),
+    ('T-76', 7, 'T-76_48.jpg'),
+    ('T-04.1', 7, 'T-04.1_49.jpg'),
+
+    ('T-04.2', 8, 'T-04.2_50.jpg'),
+    ('T-38', 8, 'T-38_51.jpg'),
+    ('T-53.1', 8, 'T-53.1_52.jpg'),
+    ('T-04.3', 8, 'T-04.3_53.jpg'),
+    ('T-105', 8, 'T-105_54.jpg'),
+    ('T-103', 8, 'T-103_55.jpg'),
+    ('T-103.1', 8, 'T-103.1_56.jpg'),
+
+    ('T-104', 9, 'T-104_57.jpg'),
+    ('T-107', 9, 'T-107_58.jpg'),
+    ('T-106', 9, 'T-106_59.jpg'),
+    ('T-55.1', 9, 'T-55.1_60.jpg'),
+    ('TT-01', 9, 'TT-01_61.jpg'),
+    ('T(1)', 9, 'T(1)_62.jpg'),
+    ('T(2)', 9, 'T(2)_63.jpg'),
 ]
-
-# материал -> номер в имени файла (_1.._21); не зависит от порядка в MATERIALS
-MATERIAL_FILE_NUMS = {
-    'Alluminium board': 1,
-    'Ancient wood': 2,
-    'Crood wood ripple board': 3,
-    'Line Stone': 4,
-    'Marble': 5,
-    'New Rock': 6,
-    'Polished Concrete': 7,
-    'Polished stone PRO': 8,
-    'Polywood': 9,
-    'Ripple Board': 10,
-    'Ripple board под покраску «выпуклый»': 11,
-    'Rockface Stone': 12,
-    'Roman pillar': 13,
-    'Rough surface': 14,
-    'Round line stone': 15,
-    'Rust board': 16,
-    'Sandstone Nile': 17,
-    'Slate': 18,
-    'Terrazo': 19,
-    'Travertine Italian': 20,
-    'Travertine PRO': 21,
-}
-
-_FILE_RE = re.compile(r'^(?P<name>.+)_(?P<num>\d+)\.(?P<ext>[a-zA-Z]+)$')
-
-# служебные файлы, которые не являются вариантами материалов
-_SKIP_PREFIXES = ('color_grid_', 'material_color_', 'layout_photo_', 'menu_layout_')
-
-
-def collect_variants() -> dict[int, list[dict]]:
-    """Сканирует data/images и группирует файлы по номеру материала."""
-    variants: dict[int, list[dict]] = {}
-    for filename in sorted(os.listdir(IMAGES_DIR)):
-        full = os.path.join(IMAGES_DIR, filename)
-        if not os.path.isfile(full):
-            continue
-        if filename in SERVICE_PHOTOS or filename.startswith(_SKIP_PREFIXES):
-            continue
-        m = _FILE_RE.match(filename)
-        if not m:
-            print(f'Пропущен файл без номера материала: {filename}')
-            continue
-        num = int(m.group('num'))
-        if num not in MATERIAL_FILE_NUMS.values():
-            print(f'Пропущен файл с неизвестным номером материала: {filename}')
-            continue
-        name_variant = m.group('name').strip()
-        path = f'{IMAGES_DIR}/{filename}'
-        variants.setdefault(num, []).append({'name_variant': name_variant, 'photo_path': path})
-    return variants
 
 
 async def seed_catalog():
-    variants = collect_variants()
     async with async_session() as session:
-        for name, group in MATERIALS:
-            num = MATERIAL_FILE_NUMS[name]
-            color_path = f'{IMAGES_DIR}/material_color_{num}.jpg'
-            if not os.path.exists(color_path):
-                color_path = None
+        for name, group, filename in MATERIALS:
+            brick_photo_path = f'{IMAGES_DIR}/{filename}'
             ins = pg_insert(Material)
             stmt = (
                 ins
@@ -115,45 +108,21 @@ async def seed_catalog():
                     name=name,
                     group=group,
                     menu_photo_path=GROUP_PHOTOS[group],
-                    color_photo_path=color_path
+                    brick_photo_path=brick_photo_path,
                 )
                 .on_conflict_do_update(
                     index_elements=[Material.name],
                     set_={
                         'group': ins.excluded.group,
                         'menu_photo_path': ins.excluded.menu_photo_path,
-                        'color_photo_path': ins.excluded.color_photo_path
+                        'brick_photo_path': ins.excluded.brick_photo_path,
                     },
                 )
             )
             await session.execute(stmt)
 
-            material_result = await session.execute(
-                select(Material).where(Material.name == name)
-            )
-            material = material_result.scalar_one()
-
-            for variant in variants.get(num, []):
-                v_ins = pg_insert(MaterialVariant)
-                v_stmt = (
-                    v_ins
-                    .values(
-                        material_id=material.id,
-                        name_variant=variant['name_variant'],
-                        photo_path=variant['photo_path'],
-                    )
-                    .on_conflict_do_update(
-                        index_elements=[MaterialVariant.material_id,
-                                        MaterialVariant.name_variant],
-                        set_={'photo_path': v_ins.excluded.photo_path},
-                    )
-                )
-                await session.execute(v_stmt)
-
         await session.commit()
-    total = sum(len(v) for v in variants.values())
     print(f'Загружено материалов: {len(MATERIALS)}')
-    print(f'Загружено вариантов: {total}')
 
 
 if __name__ == '__main__':

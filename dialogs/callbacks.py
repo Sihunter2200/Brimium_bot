@@ -8,45 +8,38 @@ from config_data.config import load_config
 from services.layouts import LAYOUTS
 
 
-SIZES = {
-    'size_big': '3000х1200',
-    'size_average': '2400х1200',
-    'size_small': '1200х600'
+BRICK_TYPES = {
+    'evro_type': 'Евро',
+    'long_type': 'Лонг'
 }
 
 
 async def select_collection(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=states.Select_collection_SG.select_material)
+    await dialog_manager.start(state=states.Select_collection_SG.select_bricks)
 
 
 async def material_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, material_id: int):
     dialog_manager.dialog_data['material_id'] = material_id
 
-    await dialog_manager.switch_to(states.Select_collection_SG.select_view_color)
+    await dialog_manager.switch_to(states.Select_collection_SG.select_specific_brick_with_photo)
 
 
 async def group_next(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     current_group = int(dialog_manager.dialog_data.get('group', 1))
-    dialog_manager.dialog_data['group'] = min(current_group+1, 3)
+    dialog_manager.dialog_data['group'] = min(current_group+1, 9)
 
-    await dialog_manager.switch_to(states.Select_collection_SG.select_material)
+    await dialog_manager.switch_to(states.Select_collection_SG.select_bricks)
 
 
 async def group_prev(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     current_group = int(dialog_manager.dialog_data.get('group', 1))
     dialog_manager.dialog_data['group'] = max(current_group-1, 1)
 
-    await dialog_manager.switch_to(states.Select_collection_SG.select_material)
+    await dialog_manager.switch_to(states.Select_collection_SG.select_bricks)
 
 
-async def color_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, color_id: int):
-    dialog_manager.dialog_data['color_id'] = color_id
-
-    await dialog_manager.switch_to(states.Select_collection_SG.select_color_with_photo)
-
-
-async def color_itog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(state=states.Select_collection_SG.select_size_tile)
+async def brick_itog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(state=states.Select_collection_SG.select_kind_brick)
 
 
 async def save_type_layout_itog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -57,27 +50,26 @@ async def save_type_layout_itog(callback: CallbackQuery, button: Button, dialog_
         state=states.Photo_visualization.get_user_photo,
         data={
             'material_id': dialog_manager.dialog_data.get('material_id'),
-            'color_id': dialog_manager.dialog_data.get('color_id'),
-            'size_tile': dialog_manager.dialog_data.get('size_tile'),
+            'brick_type': dialog_manager.dialog_data.get('brick_type'),
             'type_layout': dialog_manager.dialog_data.get('type_layout'),
             'layout_photo_path': dialog_manager.dialog_data.get('layout_photo_path')
         },
         mode=StartMode.RESET_STACK,
     )
 
-async def back_to_choice_color(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(state=states.Select_collection_SG.select_view_color)
+async def back_to_choice_bricks(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(state=states.Select_collection_SG.select_bricks)
 
 
-async def save_size_layout(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    dialog_manager.dialog_data['size_tile'] = SIZES[button.widget_id]
+async def save_brick_type(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['brick_type'] = BRICK_TYPES[button.widget_id]
 
     await dialog_manager.switch_to(state=states.Select_collection_SG.select_layout_tile)
 
 
 
 async def back_to_material_color(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(state=states.Select_collection_SG.select_material)
+    await dialog_manager.switch_to(state=states.Select_collection_SG.select_bricks)
 
 
 async def phone_received(message: Message, widget: MessageInput, dialog_manager: DialogManager):
@@ -88,16 +80,14 @@ async def phone_received(message: Message, widget: MessageInput, dialog_manager:
 
     type_layout_none=dialog_manager.start_data.get('type_layout')
 
-    size_tile=dialog_manager.start_data.get('size_tile')
     type_layout=LAYOUTS[type_layout_none]['label']
 
 
     card = (
         f'{i18n.card.new()}\n'
         f'{i18n.card.material()}: {data.get("material_name")}\n' # type: ignore
-        f'{i18n.card.color()}: {data.get("color_name")}\n' # type: ignore
+        f'{i18n.card.brick.type()}: {data.get("brick_type")}\n' # type: ignore
         f'{i18n.card.phone()}: {phone}\n'
-        f'{i18n.card.size.tile()}: {size_tile}\n'
         f'{i18n.card.type.layout()}: {type_layout}\n'
         f'{i18n.card.result()}: {data.get("result_url")}' # type: ignore
     )
