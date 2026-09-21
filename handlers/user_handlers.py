@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command, CommandObject
+from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, FSInputFile
 from aiogram_dialog import DialogManager, StartMode, ShowMode
 import logging
